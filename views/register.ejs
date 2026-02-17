@@ -1,0 +1,31 @@
+<%- include("partials/head") %> <%- include("partials/header") %>
+
+<h2>Register</h2>
+
+<form method="POST">
+  <div>
+    <label>Name:</label>
+    <input type="text" name="name" required />
+  </div>
+
+  <div>
+    <label>Email:</label>
+    <input type="email" name="email" required />
+  </div>
+
+  <div>
+    <label>Password:</label>
+    <input type="password" name="password" required />
+  </div>
+
+  <div>
+    <label>Confirm Password:</label>
+    <input type="password" name="password1" required />
+  </div>
+
+  <button type="submit">Register</button>
+</form>
+
+<p><a href="/sessions/logon">Already have an account? Log in</a></p>
+
+<%- include("partials/footer") %>
