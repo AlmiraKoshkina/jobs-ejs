@@ -4,23 +4,28 @@ const User = require("../models/User");
 
 const passportInit = () => {
   passport.use(
+    "local",
     new LocalStrategy(
-      { usernameField: "email" },
+      { usernameField: "email", passwordField: "password" },
       async (email, password, done) => {
         try {
-          const user = await User.findOne({ email });
+          const user = await User.findOne({ email: email });
 
           if (!user) {
-            return done(null, false, { message: "Invalid credentials" });
+            return done(null, false, {
+              message: "Incorrect credentials.",
+            });
           }
 
-          const isMatch = await user.comparePassword(password);
+          const result = await user.comparePassword(password);
 
-          if (!isMatch) {
-            return done(null, false, { message: "Invalid credentials" });
+          if (result) {
+            return done(null, user);
+          } else {
+            return done(null, false, {
+              message: "Incorrect credentials.",
+            });
           }
-
-          return done(null, user);
         } catch (error) {
           return done(error);
         }
@@ -28,14 +33,19 @@ const passportInit = () => {
     )
   );
 
-  passport.serializeUser((user, done) => {
+  passport.serializeUser(function (user, done) {
     done(null, user.id);
   });
 
-  passport.deserializeUser(async (id, done) => {
+  passport.deserializeUser(async function (id, done) {
     try {
       const user = await User.findById(id);
-      done(null, user);
+
+      if (!user) {
+        return done(new Error("User not found"));
+      }
+
+      return done(null, user);
     } catch (error) {
       done(error);
     }

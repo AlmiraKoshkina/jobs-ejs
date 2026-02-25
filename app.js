@@ -7,9 +7,14 @@ const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const flash = require("connect-flash");
 
-const app = express();
 const passport = require("passport");
 const passportInit = require("./passport/passportInit");
+
+const auth = require("./middleware/auth");
+const secretWordRouter = require("./routes/secretWord");
+
+const app = express();
+
 // View engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -33,36 +38,24 @@ app.use(
   })
 );
 
-// Passport
+// Flash (must come after session)
+app.use(flash());
+
+// Passport setup
 passportInit();
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
-  res.locals.user = req.user;
-  next();
-});
-// Flash
-app.use(flash());
-
-// Make flash messages available in all views
-app.use((req, res, next) => {
-  res.locals.errors = req.flash("error");
-  res.locals.info = req.flash("info");
-  next();
-});
+// Store user + flash messages in res.locals
+app.use(require("./middleware/storeLocals"));
 
 // Routes
 app.get("/", (req, res) => {
   res.render("index");
 });
-app.use("/sessions", require("./routes/sessionRoutes"));
 
-// Test flash route (temporary)
-app.get("/test-flash", (req, res) => {
-  req.flash("info", "Flash is working!");
-  res.redirect("/");
-});
+app.use("/sessions", require("./routes/sessionRoutes"));
+app.use("/secretWord", auth, secretWordRouter);
 
 // 404
 app.use((req, res) => {
