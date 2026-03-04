@@ -1,53 +1,31 @@
 const express = require("express");
 const passport = require("passport");
-const User = require("../models/User");
+
+const {
+  registerShow,
+  registerDo,
+  logonShow,
+  logoff,
+} = require("../controllers/sessionController");
 
 const router = express.Router();
 
-// Show register page
-router.get("/register", (req, res) => {
-  res.render("register");
-});
+// Register
+router.route("/register").get(registerShow).post(registerDo);
 
-// Handle register
-router.post("/register", async (req, res) => {
-  const { name, email, password, password1 } = req.body;
+// Logon
+router
+  .route("/logon")
+  .get(logonShow)
+  .post(
+    passport.authenticate("local", {
+      successRedirect: "/",
+      failureRedirect: "/sessions/logon",
+      failureFlash: true,
+    })
+  );
 
-  if (password !== password1) {
-    req.flash("error", "Passwords do not match");
-    return res.redirect("/sessions/register");
-  }
-
-  try {
-    await User.create({ name, email, password });
-    req.flash("info", "Registration successful. Please log in.");
-    res.redirect("/sessions/logon");
-  } catch (error) {
-    req.flash("error", "Email already registered");
-    res.redirect("/sessions/register");
-  }
-});
-
-// Show login page
-router.get("/logon", (req, res) => {
-  res.render("logon");
-});
-
-// Handle login
-router.post(
-  "/logon",
-  passport.authenticate("local", {
-    successRedirect: "/",
-    failureRedirect: "/sessions/logon",
-    failureFlash: true,
-  })
-);
-
-// Handle logout
-router.post("/logoff", (req, res) => {
-  req.logout(() => {
-    res.redirect("/");
-  });
-});
+// Logoff
+router.route("/logoff").post(logoff);
 
 module.exports = router;

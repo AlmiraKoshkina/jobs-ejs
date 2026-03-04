@@ -1,32 +1,7 @@
-<%- include("partials/head") %> <%- include("partials/header") %>
-
-<h2>Welcome to Jobs EJS SSR App</h2>
-
-<!-- Flash Errors -->
-<% if (errors && errors.length) { %> <% errors.forEach(err => { %>
-<div style="color: red; margin: 5px 0;">
-  <%= err %>
-</div>
-<% }) %> <% } %>
-
-<!-- Flash Info -->
-<% if (info && info.length) { %> <% info.forEach(msg => { %>
-<div style="color: green; margin: 5px 0;">
-  <%= msg %>
-</div>
-<% }) %> <% } %>
-
-<br />
-
-<a href="/test-flash">Test Flash Message</a>
-
-<%- include("partials/footer") %> <% if (user) { %>
-<p>Logged in as: <strong><%= user.name %></strong></p>
-
-<form method="POST" action="/sessions/logoff">
-  <button>Log Out</button>
-</form>
+<%- include("partials/head.ejs") %> <%- include("partials/header.ejs") %> <% if
+(user) { %>
+<a href="/secretWord">Click this link to view/change the secret word.</a>
 <% } else { %>
-<a href="/sessions/logon">Log In</a>
-<a href="/sessions/register">Register</a>
-<% } %>
+<a href="/sessions/logon">Click this link to logon.</a>
+<a href="/sessions/register">Click this link to register.</a>
+<% } %> <%- include("partials/footer.ejs") %>
