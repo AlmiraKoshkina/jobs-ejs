@@ -13,6 +13,8 @@ const passportInit = require("./passport/passportInit");
 const auth = require("./middleware/auth");
 const secretWordRouter = require("./routes/secretWord");
 
+const csrf = require("csurf");
+
 const app = express();
 
 // View engine
@@ -23,7 +25,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Session store (Mongo)
+// Session store
 const store = new MongoDBStore({
   uri: process.env.MONGO_URI,
   collection: "sessions",
@@ -38,15 +40,15 @@ app.use(
   })
 );
 
-// Flash (must come after session)
+// Flash messages
 app.use(flash());
 
-// Passport setup
+// Passport
 passportInit();
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Store user + flash messages in res.locals
+// Store locals
 app.use(require("./middleware/storeLocals"));
 
 // Routes
@@ -54,8 +56,9 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
-app.use("/sessions", require("./routes/sessionRoutes"));
+app.use("/learningUnits", auth, require("./routes/learningUnits"));
 app.use("/secretWord", auth, secretWordRouter);
+app.use("/sessions", require("./routes/sessionRoutes"));
 
 // 404
 app.use((req, res) => {
