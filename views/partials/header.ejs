@@ -1,18 +1,78 @@
-<h1>The Jobs EJS Application</h1>
+<h1>Learning Tracker</h1>
 
 <% if (user) { %>
-<p>User <%= user.name %> is logged on.</p>
-<form method="POST" action="/sessions/logoff">
-  <button>Logoff</button>
-</form>
+
+<div class="topbar">
+  <nav class="nav">
+    <a href="/">Home</a>
+
+    <a href="/learningUnits">Learning Units</a>
+
+    <a href="/learningUnits/new">Create Unit</a>
+  </nav>
+
+  <div class="user-info">
+    <span>Logged in as <strong><%= user.name %></strong></span>
+
+    <form method="POST" action="/sessions/logoff">
+      <button type="submit">Logoff</button>
+    </form>
+  </div>
+</div>
+
 <% } %> <% if (errors) { errors.forEach((err) => { %>
-<div>
-  Error: <%= err %>
+
+<div class="flash flash-error">
+  <%= err %>
 </div>
+
 <% }) } %> <% if (info) { info.forEach((msg) => { %>
-<div>
-  Info: <%= msg %>
+
+<div class="flash flash-info">
+  <%= msg %>
 </div>
+
 <% }) } %>
 
 <hr />
+
+<style>
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav a {
+    margin-right: 15px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .nav a:hover {
+    text-decoration: underline;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .flash {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+
+  .flash-error {
+    background: #ffe5e5;
+    color: #a10000;
+  }
+
+  .flash-info {
+    background: #e8f5e9;
+    color: #1b5e20;
+  }
+</style>

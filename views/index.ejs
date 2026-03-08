@@ -1,7 +1,26 @@
 <%- include("partials/head.ejs") %> <%- include("partials/header.ejs") %> <% if
 (user) { %>
-<a href="/secretWord">Click this link to view/change the secret word.</a>
+
+<p>
+  <a href="/secretWord">Click this link to view/change the secret word.</a>
+</p>
+
+<p>
+  <a href="/learningUnits">Open Learning Units</a>
+</p>
+
+<p>
+  <a href="/learningUnits/new">Create a new Learning Unit</a>
+</p>
+
 <% } else { %>
-<a href="/sessions/logon">Click this link to logon.</a>
-<a href="/sessions/register">Click this link to register.</a>
+
+<p>
+  <a href="/sessions/logon">Click this link to logon.</a>
+</p>
+
+<p>
+  <a href="/sessions/register">Click this link to register.</a>
+</p>
+
 <% } %> <%- include("partials/footer.ejs") %>

@@ -1,0 +1,114 @@
+<%- include("partials/header") %>
+
+<h2><%= unit ? "Edit Learning Unit" : "Create Learning Unit" %></h2>
+
+<form method="POST" action="<%= unit ? '/learningUnits/update/' + unit._id : '/learningUnits' %>">
+
+  
+
+  <div>
+    <label>Title</label><br>
+    <input
+      type="text"
+      name="title"
+      value="<%= unit ? unit.title : '' %>"
+      required
+    >
+  </div>
+
+  <br>
+
+  <div>
+    <label>Description</label><br>
+    <textarea name="description"><%= unit ? unit.description : '' %></textarea>
+  </div>
+
+  <br>
+
+  <div>
+    <label>Category</label><br>
+
+    <select name="category" required>
+
+      <option value="">Select category</option>
+
+      <option value="programming"
+        <%= unit && unit.category === "programming" ? "selected" : "" %>>
+        Programming
+      </option>
+
+      <option value="design"
+        <%= unit && unit.category === "design" ? "selected" : "" %>>
+        Design
+      </option>
+
+      <option value="language"
+        <%= unit && unit.category === "language" ? "selected" : "" %>>
+        Language
+      </option>
+
+      <option value="business"
+        <%= unit && unit.category === "business" ? "selected" : "" %>>
+        Business
+      </option>
+
+      <option value="other"
+        <%= unit && unit.category === "other" ? "selected" : "" %>>
+        Other
+      </option>
+
+    </select>
+  </div>
+
+  <br>
+
+  <div>
+    <label>Progress</label><br>
+
+    <select name="progress">
+
+      <option value="planned"
+        <%= unit && unit.progress === "planned" ? "selected" : "" %>>
+        Planned
+      </option>
+
+      <option value="in-progress"
+        <%= unit && unit.progress === "in-progress" ? "selected" : "" %>>
+        In Progress
+      </option>
+
+      <option value="completed"
+        <%= unit && unit.progress === "completed" ? "selected" : "" %>>
+        Completed
+      </option>
+
+    </select>
+  </div>
+
+  <br>
+
+  <div>
+    <label>Target Date</label><br>
+
+    <input
+      type="date"
+      name="targetDate"
+      value="<%= unit && unit.targetDate ? unit.targetDate.toISOString().substring(0,10) : '' %>"
+    >
+  </div>
+
+  <br>
+
+  <button type="submit">
+    <%= unit ? "Update Unit" : "Create Unit" %>
+  </button>
+
+</form>
+
+<br>
+
+<a href="/learningUnits">
+  <button>Back</button>
+</a>
+
+<%- include("partials/footer") %>

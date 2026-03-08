@@ -1,0 +1,179 @@
+<%- include("partials/header") %>
+
+<h2>Learning Units</h2>
+
+<!-- SEARCH -->
+
+<form method="GET" action="/learningUnits">
+  <input
+    type="text"
+    name="search"
+    placeholder="Search by title..."
+    value="<%= search || '' %>"
+  />
+
+  <button type="submit">Search</button>
+</form>
+
+<br />
+
+<a href="/learningUnits/new">
+  <button>Create New Learning Unit</button>
+</a>
+
+<br /><br />
+
+<table border="1" cellpadding="10">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Category</th>
+      <th>Status</th>
+      <th>Target Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% if (units.length === 0) { %>
+
+    <tr>
+      <td colspan="5">No learning units yet.</td>
+    </tr>
+
+    <% } %> <% units.forEach(unit => { %>
+
+    <tr>
+      <td>
+        <%= unit.title %>
+      </td>
+
+      <td>
+        <%= unit.category %>
+      </td>
+
+      <td>
+        <span
+          class="status <%= unit.progress === 'planned' ? 'planned' : '' %> <%= unit.progress === 'in-progress' ? 'progress' : '' %> <%= unit.progress === 'completed' ? 'completed' : '' %>"
+        >
+          <%= unit.progress.replace('-', ' ') %>
+        </span>
+      </td>
+
+      <td>
+        <% if (unit.targetDate) { %> <%=
+        unit.targetDate.toISOString().substring(0,10) %> <% } %>
+      </td>
+
+      <td>
+        <a href="/learningUnits/edit/<%= unit._id %>">
+          <button>Edit</button>
+        </a>
+
+        <form
+          method="POST"
+          action="/learningUnits/delete/<%= unit._id %>"
+          style="display: inline;"
+        >
+          <button type="submit">
+            Delete
+          </button>
+        </form>
+      </td>
+    </tr>
+
+    <% }) %>
+  </tbody>
+</table>
+
+<br />
+
+<!-- PAGINATION -->
+
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+
+  <a
+    class="page-btn"
+    href="/learningUnits?page=<%= currentPage - 1 %>&search=<%= search || '' %>"
+  >
+    Previous
+  </a>
+
+  <% } %>
+
+  <span class="page-info">
+    Page <%= currentPage %> of <%= totalPages %>
+  </span>
+
+  <% if (currentPage < totalPages) { %>
+
+  <a
+    class="page-btn"
+    href="/learningUnits?page=<%= currentPage + 1 %>&search=<%= search || '' %>"
+  >
+    Next
+  </a>
+
+  <% } %>
+</div>
+
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th {
+    background: #f4f4f4;
+  }
+
+  .status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status.planned {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .status.progress {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .status.completed {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .pagination {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .page-btn {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background: #f6f8fa;
+    text-decoration: none;
+    border-radius: 6px;
+  }
+
+  .page-btn:hover {
+    background: #eaeef2;
+  }
+
+  .page-info {
+    font-size: 14px;
+    color: #555;
+  }
+</style>
+
+<%- include("partials/footer") %>
