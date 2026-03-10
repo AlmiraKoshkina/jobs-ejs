@@ -10,15 +10,15 @@
     name="search"
     placeholder="Search by title..."
     value="<%= search || '' %>"
+    autofocus
   />
-
   <button type="submit">Search</button>
 </form>
 
 <br />
 
 <a href="/learningUnits/new">
-  <button>Create New Learning Unit</button>
+  <button class="create-btn">+ Create Learning Unit</button>
 </a>
 
 <br /><br />
@@ -27,6 +27,7 @@
   <thead>
     <tr>
       <th>Title</th>
+      <th>Description</th>
       <th>Category</th>
       <th>Status</th>
       <th>Target Date</th>
@@ -36,18 +37,20 @@
 
   <tbody>
     <% if (units.length === 0) { %>
-
     <tr>
-      <td colspan="5">No learning units yet.</td>
+      <td colspan="6">
+        <%= search ? "No results found." : "No learning units yet." %>
+      </td>
     </tr>
-
     <% } %> <% units.forEach(unit => { %>
 
     <tr>
       <td>
         <%= unit.title %>
       </td>
-
+      <td>
+        <%= unit.description %>
+      </td>
       <td>
         <%= unit.category %>
       </td>
@@ -61,8 +64,8 @@
       </td>
 
       <td>
-        <% if (unit.targetDate) { %> <%=
-        unit.targetDate.toISOString().substring(0,10) %> <% } %>
+        <% if (unit.targetDate) { %> <%= new
+        Date(unit.targetDate).toISOString().substring(0,10) %> <% } %>
       </td>
 
       <td>
@@ -75,7 +78,10 @@
           action="/learningUnits/delete/<%= unit._id %>"
           style="display: inline;"
         >
-          <button type="submit">
+          <button
+            type="submit"
+            onclick="return confirm('Are you sure you want to delete this learning unit?')"
+          >
             Delete
           </button>
         </form>
@@ -92,14 +98,12 @@
 
 <div class="pagination">
   <% if (currentPage > 1) { %>
-
   <a
     class="page-btn"
     href="/learningUnits?page=<%= currentPage - 1 %>&search=<%= search || '' %>"
   >
     Previous
   </a>
-
   <% } %>
 
   <span class="page-info">
@@ -107,14 +111,12 @@
   </span>
 
   <% if (currentPage < totalPages) { %>
-
   <a
     class="page-btn"
     href="/learningUnits?page=<%= currentPage + 1 %>&search=<%= search || '' %>"
   >
     Next
   </a>
-
   <% } %>
 </div>
 
@@ -173,6 +175,23 @@
   .page-info {
     font-size: 14px;
     color: #555;
+  }
+
+  tbody tr:nth-child(even) {
+    background: #fafafa;
+  }
+
+  .create-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .create-btn:hover {
+    background: #43a047;
   }
 </style>
 
