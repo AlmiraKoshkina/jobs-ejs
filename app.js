@@ -13,22 +13,28 @@ const passportInit = require("./passport/passportInit");
 const auth = require("./middleware/auth");
 const secretWordRouter = require("./routes/secretWord");
 
-const csrf = require("csurf");
+const helmet = require("helmet");
 
 const app = express();
+app.disable("x-powered-by");
+app.use(helmet());
 
 // View engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Body parsing
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(express.json({ limit: "10kb" }));
 
 // Session store
 const store = new MongoDBStore({
   uri: process.env.MONGO_URI,
   collection: "sessions",
+});
+
+store.on("error", function (error) {
+  console.log(error);
 });
 
 app.use(
@@ -78,5 +84,13 @@ const start = async () => {
     console.log(error);
   }
 };
+
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(err.status || 500).render("error", {
+    message: err.message || "Something went wrong",
+  });
+});
 
 start();

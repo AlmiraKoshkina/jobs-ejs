@@ -2,7 +2,7 @@ const LearningUnit = require("../models/LearningUnit");
 const mongoose = require("mongoose");
 
 // GET all units
-const getAllUnits = async (req, res) => {
+const getAllUnits = async (req, res, next) => {
   try {
     const filter = { createdBy: req.user._id };
 
@@ -36,10 +36,10 @@ const getAllUnits = async (req, res) => {
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       search: req.query.search || "",
+      progress: req.query.progress || "",
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server Error");
+    next(error);
   }
 };
 
@@ -49,7 +49,7 @@ const showCreateForm = (req, res) => {
 };
 
 // CREATE unit
-const createUnit = async (req, res) => {
+const createUnit = async (req, res, next) => {
   try {
     const { title, description, category, progress, targetDate } = req.body;
 
@@ -62,15 +62,16 @@ const createUnit = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    req.flash("info", "Learning unit created successfully");
+
     res.redirect("/learningUnits");
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server Error");
+    next(error);
   }
 };
 
 // SHOW edit form
-const showEditForm = async (req, res) => {
+const showEditForm = async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.redirect("/learningUnits");
@@ -87,13 +88,12 @@ const showEditForm = async (req, res) => {
 
     res.render("learningUnit", { unit });
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server Error");
+    next(error);
   }
 };
 
 // UPDATE unit
-const updateUnit = async (req, res) => {
+const updateUnit = async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.redirect("/learningUnits");
@@ -118,15 +118,16 @@ const updateUnit = async (req, res) => {
 
     await unit.save();
 
+    req.flash("info", "Learning unit updated");
+
     res.redirect("/learningUnits");
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server Error");
+    next(error);
   }
 };
 
 // DELETE unit
-const deleteUnit = async (req, res) => {
+const deleteUnit = async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.redirect("/learningUnits");
@@ -137,10 +138,11 @@ const deleteUnit = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    req.flash("info", "Learning unit deleted");
+
     res.redirect("/learningUnits");
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server Error");
+    next(error);
   }
 };
 
