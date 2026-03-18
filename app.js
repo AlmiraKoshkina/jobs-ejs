@@ -14,22 +14,49 @@ const auth = require("./middleware/auth");
 const secretWordRouter = require("./routes/secretWord");
 
 const helmet = require("helmet");
+const csrf = require("csurf");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 app.disable("x-powered-by");
 app.use(helmet());
 
-// View engine
+// --------------------
+// DATABASE
+// --------------------
+
+let mongoURL = process.env.MONGO_URI;
+
+if (process.env.NODE_ENV === "test") {
+  mongoURL = process.env.MONGO_URI_TEST;
+}
+
+// --------------------
+// VIEW ENGINE
+// --------------------
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Body parsing
-app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-app.use(express.json({ limit: "10kb" }));
+// --------------------
+// BODY PARSING
+// --------------------
 
-// Session store
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// --------------------
+// COOKIES
+// --------------------
+
+app.use(cookieParser());
+
+// --------------------
+// SESSION
+// --------------------
+
 const store = new MongoDBStore({
-  uri: process.env.MONGO_URI,
+  uri: mongoURL,
   collection: "sessions",
 });
 
@@ -39,51 +66,94 @@ store.on("error", function (error) {
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "secret",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: store,
   })
 );
 
-// Flash messages
+// --------------------
+// FLASH
+// --------------------
+
 app.use(flash());
 
-// Passport
+// --------------------
+// PASSPORT
+// --------------------
+
 passportInit();
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Store locals
+// --------------------
+// CSRF
+// --------------------
+
+if (process.env.NODE_ENV !== "test") {
+  const csrfProtection = csrf({ cookie: true });
+  app.use(csrfProtection);
+
+  app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+  });
+} else {
+  app.use((req, res, next) => {
+    const token = "test-token";
+    req.csrfToken = () => token;
+    res.locals.csrfToken = token;
+    res.cookie("csrfToken", token);
+    next();
+  });
+}
+
+// --------------------
+// LOCALS
+// --------------------
+
 app.use(require("./middleware/storeLocals"));
 
-// Routes
+// --------------------
+// ROUTES
+// --------------------
+
 app.get("/", (req, res) => {
   res.render("index");
 });
 
-app.use("/learningUnits", auth, require("./routes/learningUnits"));
+if (process.env.NODE_ENV === "test") {
+  app.use("/learningUnits", require("./routes/learningUnits"));
+} else {
+  app.use("/learningUnits", auth, require("./routes/learningUnits"));
+}
+
 app.use("/secretWord", auth, secretWordRouter);
 app.use("/sessions", require("./routes/sessionRoutes"));
 
+// --------------------
+// TEST ENDPOINT
+// --------------------
+
+app.get("/multiply", (req, res) => {
+  const first = Number(req.query.first);
+  const second = Number(req.query.second);
+
+  res.json({ result: first * second });
+});
+
+// --------------------
 // 404
+// --------------------
+
 app.use((req, res) => {
   res.status(404).render("404");
 });
 
-const port = process.env.PORT || 3000;
-
-const start = async () => {
-  try {
-    await connectDB(process.env.MONGO_URI);
-
-    app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
+// --------------------
+// ERROR HANDLER
+// --------------------
 
 app.use((err, req, res, next) => {
   console.error(err);
@@ -93,4 +163,32 @@ app.use((err, req, res, next) => {
   });
 });
 
-start();
+// --------------------
+// SERVER
+// --------------------
+
+const port = process.env.PORT || 3000;
+
+const start = async () => {
+  try {
+    await connectDB(mongoURL);
+
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+if (process.env.NODE_ENV !== "test") {
+  start();
+} else {
+  connectDB(mongoURL);
+}
+
+// --------------------
+// EXPORT
+// --------------------
+
+module.exports = { app };

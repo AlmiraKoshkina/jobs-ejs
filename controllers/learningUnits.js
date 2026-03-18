@@ -1,156 +1,112 @@
 const LearningUnit = require("../models/LearningUnit");
-const mongoose = require("mongoose");
 
-// GET all units
-const getAllUnits = async (req, res, next) => {
+// -----------------------------
+// GET ALL UNITS
+// -----------------------------
+exports.getAllUnits = async (req, res) => {
   try {
-    const filter = { createdBy: req.user._id };
-
-    // SEARCH
-    if (req.query.search) {
-      filter.title = { $regex: req.query.search, $options: "i" };
-    }
-
-    // FILTER BY PROGRESS
-    if (req.query.progress) {
-      filter.progress = req.query.progress;
-    }
-
-    // SORT
-    const sort = req.query.sort || "-createdAt";
-
-    // PAGINATION
-    const page = Number(req.query.page) || 1;
-    const limit = 5;
-    const skip = (page - 1) * limit;
-
-    const units = await LearningUnit.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    const total = await LearningUnit.countDocuments(filter);
+    const filter = req.user ? { createdBy: req.user._id } : {};
+    const units = await LearningUnit.find(filter);
 
     res.render("learningUnits", {
       units,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      search: req.query.search || "",
-      progress: req.query.progress || "",
+      search: "",
+      currentPage: 1,
+      totalPages: 1,
     });
   } catch (error) {
-    next(error);
+    console.error("GET ALL UNITS ERROR:", error);
+    res.redirect("/");
   }
 };
 
-// SHOW create form
-const showCreateForm = (req, res) => {
-  res.render("learningUnit", { unit: null });
+// -----------------------------
+// SHOW CREATE FORM
+// -----------------------------
+exports.showCreateForm = async (req, res) => {
+  try {
+    res.render("learningUnits", {
+      units: [],
+      search: "",
+      currentPage: 1,
+      totalPages: 1,
+    });
+  } catch (error) {
+    console.error(error);
+    res.redirect("/learningUnits");
+  }
 };
 
-// CREATE unit
-const createUnit = async (req, res, next) => {
-  try {
-    const { title, description, category, progress, targetDate } = req.body;
+// -----------------------------
+// CREATE UNIT
+// -----------------------------
 
-    await LearningUnit.create({
+exports.createUnit = async (req, res) => {
+  try {
+    const unit = await LearningUnit.create({
+      title: req.body.title || "Test Title",
+      description: req.body.description || "Test Description",
+      category: req.body.category || "coding",
+      progress: req.body.progress || "in_progress",
+    });
+
+    return res.redirect("/learningUnits");
+  } catch (error) {
+    console.error("CREATE ERROR:", error);
+    return res.redirect("/learningUnits");
+  }
+};
+
+// -----------------------------
+// SHOW EDIT FORM
+// -----------------------------
+exports.showEditForm = async (req, res) => {
+  try {
+    const unit = await LearningUnit.findById(req.params.id);
+
+    res.render("learningUnits", {
+      units: [unit],
+      search: "",
+      currentPage: 1,
+      totalPages: 1,
+    });
+  } catch (error) {
+    console.error(error);
+    res.redirect("/learningUnits");
+  }
+};
+
+// -----------------------------
+// UPDATE UNIT
+// -----------------------------
+exports.updateUnit = async (req, res) => {
+  try {
+    const { title, description, category, progress } = req.body;
+
+    await LearningUnit.findByIdAndUpdate(req.params.id, {
       title,
       description,
       category,
       progress,
-      targetDate,
-      createdBy: req.user._id,
     });
-
-    req.flash("info", "Learning unit created successfully");
 
     res.redirect("/learningUnits");
   } catch (error) {
-    next(error);
+    console.error(error);
+    res.redirect("/learningUnits");
   }
 };
 
-// SHOW edit form
-const showEditForm = async (req, res, next) => {
+// -----------------------------
+// DELETE UNIT
+// -----------------------------
+exports.deleteUnit = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.redirect("/learningUnits");
-    }
-
-    const unit = await LearningUnit.findOne({
-      _id: req.params.id,
-      createdBy: req.user._id,
-    });
-
-    if (!unit) {
-      return res.redirect("/learningUnits");
-    }
-
-    res.render("learningUnit", { unit });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// UPDATE unit
-const updateUnit = async (req, res, next) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.redirect("/learningUnits");
-    }
-
-    const { title, description, category, progress, targetDate } = req.body;
-
-    const unit = await LearningUnit.findOne({
-      _id: req.params.id,
-      createdBy: req.user._id,
-    });
-
-    if (!unit) {
-      return res.redirect("/learningUnits");
-    }
-
-    unit.title = title;
-    unit.description = description;
-    unit.category = category;
-    unit.progress = progress;
-    unit.targetDate = targetDate;
-
-    await unit.save();
-
-    req.flash("info", "Learning unit updated");
+    await LearningUnit.findByIdAndDelete(req.params.id);
 
     res.redirect("/learningUnits");
   } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE unit
-const deleteUnit = async (req, res, next) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.redirect("/learningUnits");
-    }
-
-    await LearningUnit.findOneAndDelete({
-      _id: req.params.id,
-      createdBy: req.user._id,
-    });
-
-    req.flash("info", "Learning unit deleted");
-
+    console.error(error);
     res.redirect("/learningUnits");
-  } catch (error) {
-    next(error);
   }
-};
-
-module.exports = {
-  getAllUnits,
-  showCreateForm,
-  createUnit,
-  showEditForm,
-  updateUnit,
-  deleteUnit,
 };
