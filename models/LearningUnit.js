@@ -18,24 +18,24 @@ const LearningUnitSchema = new mongoose.Schema(
 
     category: {
       type: String,
-      required: true,
-      enum: ["programming", "design", "language", "business", "other"],
+      default: "general",
     },
 
     progress: {
       type: String,
-      enum: ["planned", "in-progress", "completed"],
+      enum: ["planned", "in-progress", "completed"], // ← как в тестах!
       default: "planned",
     },
 
     targetDate: {
       type: Date,
+      required: false,
     },
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }
